@@ -1,0 +1,293 @@
+
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PR Review — sample-repo Task API</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #1f2328;
+    background: #ffffff;
+    padding: 32px 16px 48px;
+  }
+  .page { max-width: 760px; margin: 0 auto; }
+
+  /* Header */
+  .header { border-bottom: 2px solid #e5e7eb; padding-bottom: 16px; margin-bottom: 28px; }
+  .header h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  .header .meta { font-size: 12px; color: #57606a; display: flex; gap: 20px; flex-wrap: wrap; }
+  .header .meta span { display: flex; align-items: center; gap: 4px; }
+
+  /* Verdict badge */
+  .verdict-row { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+  .verdict-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 14px; border-radius: 4px; font-size: 13px; font-weight: 700;
+    letter-spacing: 0.02em; text-transform: uppercase;
+    background: #fff3cd; color: #7d5a00; border: 1px solid #f0c040;
+  }
+  .verdict-badge.request { background: #fde8e8; color: #8b1a1a; border-color: #f5a0a0; }
+  .verdict-label { font-size: 12px; color: #57606a; }
+
+  /* Section */
+  section { margin-bottom: 28px; }
+  section h2 {
+    font-size: 13px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; color: #57606a;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 6px; margin-bottom: 14px;
+  }
+
+  /* Overview */
+  .overview p { margin-bottom: 8px; color: #1f2328; }
+
+  /* Findings */
+  .finding {
+    background: #f7f8fa;
+    border: 1px solid #e5e7eb;
+    border-left: 4px solid #e5e7eb;
+    border-radius: 4px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+  }
+  .finding.high { border-left-color: #d73a49; }
+  .finding.medium { border-left-color: #e36209; }
+  .finding.low { border-left-color: #f9c513; }
+
+  .finding-header {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 12px; margin-bottom: 6px;
+  }
+  .finding-title { font-weight: 700; font-size: 14px; }
+  .badge {
+    font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 3px;
+    text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .badge.high   { background: #fde8e8; color: #8b1a1a; }
+  .badge.medium { background: #fff0e0; color: #7d4200; }
+  .badge.info   { background: #e8f0fe; color: #1a3a8b; }
+
+  .finding-meta { font-size: 12px; color: #57606a; margin-bottom: 6px; }
+  .finding-meta code {
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 11px; background: #eef0f3; padding: 1px 4px; border-radius: 3px;
+  }
+  .finding-body { font-size: 13px; color: #1f2328; }
+
+  /* Required changes list */
+  .changes-list { padding-left: 0; list-style: none; }
+  .changes-list li {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 8px 0; border-bottom: 1px solid #e5e7eb; font-size: 13px;
+  }
+  .changes-list li:last-child { border-bottom: none; }
+  .tag {
+    font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 3px;
+    text-transform: uppercase; white-space: nowrap; flex-shrink: 0; margin-top: 1px;
+  }
+  .tag.sec  { background: #fde8e8; color: #8b1a1a; }
+  .tag.test { background: #e6f4ea; color: #1a5c2a; }
+  .tag.qual { background: #e8f0fe; color: #1a3a8b; }
+
+  /* Time saved */
+  .time-box {
+    background: #f7f8fa; border: 1px solid #e5e7eb; border-radius: 4px;
+    padding: 16px 18px;
+  }
+  .time-box .estimate {
+    font-size: 22px; font-weight: 700; color: #3b82d4; margin-bottom: 4px;
+  }
+  .time-box .breakdown { font-size: 13px; color: #57606a; }
+  .time-box table { width: 100%; margin-top: 10px; border-collapse: collapse; font-size: 13px; }
+  .time-box td { padding: 4px 8px 4px 0; vertical-align: top; color: #1f2328; }
+  .time-box td:first-child { color: #57606a; width: 200px; }
+
+  /* Footer */
+  footer {
+    margin-top: 40px; padding-top: 14px;
+    border-top: 1px solid #e5e7eb;
+    text-align: center; font-size: 12px; color: #57606a;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <h1>PR Review — Task Manager API (<code>sample-repo/</code>)</h1>
+    <div class="meta">
+      <span>Files reviewed: <strong>tasks.js, app.js, db.js, tasks.test.js</strong></span>
+      <span>Findings: <strong>3 High · 4 Medium · 3 Quality</strong></span>
+      <span>Category coverage: <strong>Security · Test Coverage · Code Quality</strong></span>
+    </div>
+  </div>
+
+  
+  <div class="verdict-row">
+    <span class="verdict-badge request">⚠ Request Changes</span>
+    <span class="verdict-label">Two high-severity security gaps must be resolved before merge.</span>
+  </div>
+
+  
+  <section class="overview">
+    <h2>Overview</h2>
+    <p>
+      This PR introduces a three-endpoint REST API (<code>POST /tasks</code>, <code>GET /tasks/:id</code>,
+      <code>DELETE /tasks/:id</code>) backed by an in-memory store — a self-contained change that establishes
+      the core task-management surface of the service.
+    </p>
+    <p>
+      As written, the API ships with no authentication layer and no input validation, meaning any
+      unauthenticated caller can freely create or destroy all data, and malformed payloads reach the
+      store unchecked — both are showstopper gaps for a service exposed beyond localhost.
+    </p>
+  </section>
+
+  
+  <section>
+    <h2>Top 3 Findings — Ranked by Severity</h2>
+
+    <div class="finding high">
+      <div class="finding-header">
+        <span class="finding-title">#1 — No authentication or authorisation on any endpoint</span>
+        <span class="badge high">High</span>
+      </div>
+      <div class="finding-meta">
+        <code>app.js:6</code>  /  <code>routes/tasks.js:4</code>  ·  Category: Security
+      </div>
+      <div class="finding-body">
+        All three endpoints are mounted without any authentication middleware — any unauthenticated caller
+        can create or delete every task in the store. This is a complete BOLA (Broken Object Level
+        Authorization) exposure. No amount of input validation fixes this; an auth middleware (JWT, session,
+        or API key) must be added as a prerequisite to deployment.
+      </div>
+    </div>
+
+    <div class="finding high">
+      <div class="finding-header">
+        <span class="finding-title">#2 — Missing input validation on <code>POST /tasks</code></span>
+        <span class="badge high">High</span>
+      </div>
+      <div class="finding-meta">
+        <code>routes/tasks.js:10–11</code>  ·  Category: Security + Correctness
+      </div>
+      <div class="finding-body">
+        <code>title</code> is taken verbatim from <code>req.body</code> and written to the store with no
+        type check, presence check, or length limit. An attacker (or a bug) can store <code>null</code>,
+        an object, an array, or an arbitrarily large string — opening vectors for data corruption,
+        prototype-pollution downstream, and memory-exhaustion DoS. The source comment acknowledges this
+        is a known gap, making it an explicit merge blocker. A single guard
+        (<code>if (!title || typeof title !== 'string')</code>) resolves it.
+      </div>
+    </div>
+
+    <div class="finding medium">
+      <div class="finding-header">
+        <span class="finding-title">#3 — <code>DELETE /tasks/:id</code> has zero test coverage</span>
+        <span class="badge medium">Medium</span>
+      </div>
+      <div class="finding-meta">
+        <code>routes/tasks.js:26–32</code>  /  <code>tests/tasks.test.js</code>  ·  Category: Test Coverage
+      </div>
+      <div class="finding-body">
+        The only destructive endpoint in the API — the one most likely to cause data loss — has no tests
+        at all. Neither the happy path (204 + resource removed) nor the error path (404 on missing ID)
+        is asserted. Any regression or future security bug in the delete path will pass CI undetected.
+        Four lines of test code cover both branches; there is no reason this shipped untested.
+      </div>
+    </div>
+  </section>
+
+  
+  <section>
+    <h2>Required Changes Before Approval</h2>
+    <ul class="changes-list">
+      <li>
+        <span class="tag sec">Security</span>
+        Add authentication middleware to <code>app.js</code> before mounting <code>/tasks</code> — JWT, session, or API key at minimum.
+      </li>
+      <li>
+        <span class="tag sec">Security</span>
+        Add input validation guard in <code>POST /tasks</code>: reject missing, non-string, or empty <code>title</code> with <code>400</code>.
+      </li>
+      <li>
+        <span class="tag test">Tests</span>
+        Add tests for <code>DELETE /:id</code>: happy path (204 + subsequent GET returns 404) and not-found path (404 + error body).
+      </li>
+      <li>
+        <span class="tag sec">Security</span>
+        Set a body size limit on <code>express.json()</code> in <code>app.js</code>: <code>express.json({ limit: '10kb' })</code>.
+      </li>
+      <li>
+        <span class="tag sec">Security</span>
+        Validate <code>req.params.id</code> is a positive integer before forwarding to the data layer (<code>GET</code> and <code>DELETE</code>).
+      </li>
+    </ul>
+  </section>
+
+  
+  <section>
+    <h2>Recommended Follow-ups (Non-blocking)</h2>
+    <ul class="changes-list">
+      <li>
+        <span class="tag qual">Quality</span>
+        Extract the duplicated <code>{ error: 'Task not found' }</code> literal into a shared helper — single point of change.
+      </li>
+      <li>
+        <span class="tag qual">Quality</span>
+        Hoist the <code>Number(id)</code> coercion in <code>db.js</code> into a shared <code>toId()</code> function used by both <code>getTaskById</code> and <code>deleteTaskById</code>.
+      </li>
+      <li>
+        <span class="tag qual">Quality</span>
+        Add <code>GET /tasks</code> (list all) — the absence of a list route is an asymmetry that will surprise API consumers and is a one-liner to add.
+      </li>
+      <li>
+        <span class="tag test">Tests</span>
+        Add edge-case tests for <code>POST /tasks</code> with missing/empty/non-string <code>title</code> to document (and gate) the currently silent acceptance of bad data.
+      </li>
+      <li>
+        <span class="tag qual">Quality</span>
+        Wrap module-level mutable state in <code>db.js</code> in a factory function to improve testability and avoid shared-singleton side-effects.
+      </li>
+    </ul>
+  </section>
+
+  
+  <section>
+    <h2>Estimated Time Saved vs. Manual Review</h2>
+    <div class="time-box">
+      <div class="estimate">45–60 minutes</div>
+      <div class="breakdown">Across security, coverage, and quality dimensions — compared to a thorough human review of the same surface.</div>
+      <table>
+        <tr>
+          <td>Security audit (auth, injection, DoS)</td>
+          <td>~20 min manual · identified in seconds by automated scan</td>
+        </tr>
+        <tr>
+          <td>Coverage gap mapping (branch-by-branch)</td>
+          <td>~15 min manual · all branches enumerated and cross-referenced against test file automatically</td>
+        </tr>
+        <tr>
+          <td>Code quality / DRY analysis</td>
+          <td>~10 min manual · all six issues surfaced with suggested fixes in a single pass</td>
+        </tr>
+        <tr>
+          <td>Synthesising into ranked, actionable PR comment</td>
+          <td>~10–15 min manual · generated as structured output immediately</td>
+        </tr>
+      </table>
+      <div style="margin-top:10px;font-size:12px;color:#57606a">
+        <strong>Reasoning:</strong> A senior engineer reviewing this codebase manually would need to mentally trace each request path for security properties, map every branch against the test file by hand, and separately assess maintainability concerns — then write up findings. That work was parallelised across three specialised analysis passes and merged here. The saving is primarily in the systematic completeness (no branch left unexamined, no category skipped) rather than raw speed.
+      </div>
+    </div>
+  </section>
+
+</div>
+<footer>Made with IBM Bob</footer>
+</body>
+</html>

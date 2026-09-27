@@ -1,0 +1,88 @@
+{
+  "security": [
+    {
+      "file": "sample-repo/src/app.js",
+      "line": "6",
+      "risk": "No authentication or authorization on any endpoint",
+      "severity": "high",
+      "explanation": "All endpoints are mounted without auth middleware; any unauthenticated caller can create or delete every task in the store (BOLA exposure)."
+    },
+    {
+      "file": "sample-repo/src/routes/tasks.js",
+      "line": "10-11",
+      "risk": "Missing input validation on title",
+      "severity": "high",
+      "explanation": "title is taken directly from req.body and stored without any type, presence, or length check. Acknowledged in a source comment but left unresolved."
+    },
+    {
+      "file": "sample-repo/src/routes/tasks.js",
+      "line": "17, 27",
+      "risk": "Unvalidated route parameter passed to data layer",
+      "severity": "medium",
+      "explanation": "req.params.id is coerced with Number(id) with no explicit integer check, allowing unpredictable lookup behavior."
+    },
+    {
+      "file": "sample-repo/src/app.js",
+      "line": "5",
+      "risk": "Unbounded JSON body accepted",
+      "severity": "medium",
+      "explanation": "express.json() has no limit option set, leaving the default 100kb ceiling with no explicit control."
+    }
+  ],
+  "test_coverage": [
+    {
+      "function": "POST /",
+      "coverage_status": "partial - happy path only",
+      "suggested_tests": [
+        "creates a task with an empty string title -> assert 201 + body.title === ''",
+        "creates a task when title field is absent -> assert 201 + body.title === undefined"
+      ]
+    },
+    {
+      "function": "GET /:id",
+      "coverage_status": "full - both branches covered",
+      "suggested_tests": []
+    },
+    {
+      "function": "DELETE /:id",
+      "coverage_status": "untested",
+      "suggested_tests": [
+        "deletes an existing task and returns 204, subsequent GET returns 404",
+        "returns 404 when deleting a non-existent task"
+      ]
+    }
+  ],
+  "complexity": [
+    {
+      "file": "sample-repo/src/routes/tasks.js",
+      "issue": "Duplicated 404 response literal in GET and DELETE handlers",
+      "suggested_fix": "Extract a shared notFound(res) helper and reuse it in both handlers."
+    },
+    {
+      "file": "sample-repo/src/routes/tasks.js",
+      "issue": "No GET / (list all tasks) route, breaking REST convention",
+      "suggested_fix": "Add a GET / route backed by a new getAllTasks() export in db.js."
+    },
+    {
+      "file": "sample-repo/src/db.js",
+      "issue": "Number(id) coercion duplicated in getTaskById and deleteTaskById",
+      "suggested_fix": "Hoist the cast into a shared toId(id) helper used by both functions."
+    },
+    {
+      "file": "sample-repo/src/db.js",
+      "issue": "Module-level mutable state (tasks, nextId) not encapsulated",
+      "suggested_fix": "Wrap state in a createStore() factory, exporting a default instance to preserve the current API."
+    }
+  ],
+  "summary": {
+    "overview": "This PR introduces a three-endpoint REST API (POST /tasks, GET /tasks/:id, DELETE /tasks/:id) backed by an in-memory store. As written, it ships with no authentication layer and no input validation, meaning any unauthenticated caller can freely create or destroy all data, and malformed payloads reach the store unchecked.",
+    "top_findings": [
+      "No authentication on any endpoint - widest blast radius, exploitable from outside with zero effort (high)",
+      "Missing input validation on POST /tasks - acknowledged in source comment but shipped anyway (high)",
+      "DELETE /tasks/:id has zero test coverage - the only destructive operation with no safety net at all (medium)"
+    ],
+    "recommendation": "request_changes",
+    "estimated_time_saved_minutes": 50,
+    "reasoning": "A senior engineer reviewing this manually would need to mentally trace each request path for security properties, map every branch against the test file by hand, and separately assess maintainability - then write it up. That work was parallelized across three specialized analysis passes and merged into one ranked report. The saving is primarily in systematic completeness (no branch left unexamined, no category skipped) rather than raw speed."
+  }
+}
